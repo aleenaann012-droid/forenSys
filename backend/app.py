@@ -1,14 +1,12 @@
-from flask import Flask, jsonify
+from flask import Flask
+from flask_cors import CORS
+
+from api.routes import api_bp
 
 app = Flask(__name__)
+CORS(app)
 
-@app.route("/")
-def home():
-    return jsonify({"status": "Backend is running"})
-
-@app.route("/health")
-def health():
-    return jsonify({"message": "Flask API working fine"})
+app.register_blueprint(api_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
