@@ -3,3 +3,4 @@ def analyze(url):
         "visual_score": 0.5,
         "flags": ["placeholder_visual"]
     }
+
