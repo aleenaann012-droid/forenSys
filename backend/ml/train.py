@@ -1,31 +1,39 @@
 import pandas as pd
-import numpy as np
-import joblib
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from features import build_features
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import joblib
 
-df = pd.read_csv("data/phish_data.csv")
+# 1. Load dataset (already feature-engineered)
+data = pd.read_csv("data/dataset.csv")
 
-X = np.array([
-    build_features(row["url"], row["text"])
-    for _, row in df.iterrows()
-])
+# 2. Separate features and label
+# In this dataset, the label column is usually named 'Result'
+X = data.drop(columns=["Result"])
+y = data["Result"]
 
-y = df["label"].values
+# Convert labels: -1 (phishing) → 1, 1 (legitimate) → 0
+y = y.map({-1: 1, 1: 0})
 
+# 3. Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
+# 4. Train interpretable model
 model = RandomForestClassifier(
-    n_estimators=200,
-    max_depth=15,
-    random_state=42
+    n_estimators=100,
+    random_state=42,
+    n_jobs=-1
 )
 
 model.fit(X_train, y_train)
 
-joblib.dump(model, "backend/ml/phish_model.pkl")
+# 5. Evaluate
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy:.4f}")
 
-print("✅ ML model trained & saved")
+# 6. Save model
+joblib.dump(model, "phish_model.pkl")
+print("Model saved as phish_model.pkl")

@@ -1,37 +1,25 @@
-import re
-from urllib.parse import urlparse
+import joblib
+import pandas as pd
 
-def extract_features(url):
-    parsed = urlparse(url)
+# Load trained model
+model = joblib.load("phish_model.pkl")
 
-    # Feature 1: Length of the URL
-    url_length = len(url)
+# Load dataset to get feature names
+data = pd.read_csv("data/dataset.csv")
 
-    # Feature 2: Number of dots in the domain
-    num_dots = parsed.netloc.count('.')
+# Drop label column
+feature_names = data.drop(columns=["Result"]).columns
 
-    # Feature 3: Uses HTTPS or not
-    has_https = 1 if parsed.scheme == "https" else 0
+# Get feature importance
+importances = model.feature_importances_
 
-    # Feature 4: Presence of '@' symbol
-    has_at_symbol = 1 if '@' in url else 0
+# Combine and sort
+feature_importance = sorted(
+    zip(feature_names, importances),
+    key=lambda x: x[1],
+    reverse=True
+)
 
-    # Feature 5: Number of hyphens in domain
-    num_hyphens = parsed.netloc.count('-')
-
-    # Feature 6: Suspicious words commonly used in phishing
-    suspicious_words = ['login', 'verify', 'update', 'secure', 'account', 'bank']
-    has_suspicious_word = 0
-    for word in suspicious_words:
-        if word in url.lower():
-            has_suspicious_word = 1
-            break
-
-    return [
-        url_length,
-        num_dots,
-        has_https,
-        has_at_symbol,
-        num_hyphens,
-        has_suspicious_word
-    ]
+print("Top Structural DNA Features:")
+for feature, score in feature_importance[:10]:
+    print(f"{feature}: {score:.4f}")
