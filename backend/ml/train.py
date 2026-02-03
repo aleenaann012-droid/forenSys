@@ -1,34 +1,31 @@
-# Train phishing detection model (Structural DNA)
-
 import pandas as pd
+import numpy as np
 import joblib
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from features import build_features
 
-from features import extract_features
+df = pd.read_csv("data/phish_data.csv")
 
+X = np.array([
+    build_features(row["url"], row["text"])
+    for _, row in df.iterrows()
+])
 
-# 1. Load dataset
-# Dataset must have columns: 'url' and 'label'
-data = pd.read_csv("../data/raw/phishing.csv")
+y = df["label"].values
 
-# 2. Extract features
-X = data['url'].apply(extract_features).tolist()
-y = data['label']
-
-# 3. Split data
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# 4. Train model
 model = RandomForestClassifier(
-    n_estimators=100,
+    n_estimators=200,
+    max_depth=15,
     random_state=42
 )
+
 model.fit(X_train, y_train)
 
-# 5. Save trained model
-joblib.dump(model, "phish_model.pkl")
+joblib.dump(model, "backend/ml/phish_model.pkl")
 
-print("✅ Model trained and saved as phish_model.pkl")
+print("✅ ML model trained & saved")

@@ -1,40 +1,37 @@
-# Feature extraction for phishing detection (Structural DNA)
+import re
+from urllib.parse import urlparse
 
 def extract_features(url):
-    """
-    Takes a URL string and returns a list of numerical features
-    """
+    parsed = urlparse(url)
 
-    url = url.lower()
-
-    # 1. URL length
+    # Feature 1: Length of the URL
     url_length = len(url)
 
-    # 2. Number of dots
-    num_dots = url.count('.')
+    # Feature 2: Number of dots in the domain
+    num_dots = parsed.netloc.count('.')
 
-    # 3. Number of hyphens
-    num_hyphens = url.count('-')
+    # Feature 3: Uses HTTPS or not
+    has_https = 1 if parsed.scheme == "https" else 0
 
-    # 4. Presence of '@' symbol
+    # Feature 4: Presence of '@' symbol
     has_at_symbol = 1 if '@' in url else 0
 
-    # 5. HTTPS usage
-    has_https = 1 if url.startswith('https') else 0
+    # Feature 5: Number of hyphens in domain
+    num_hyphens = parsed.netloc.count('-')
 
-    # 6. Number of digits in URL
-    num_digits = sum(char.isdigit() for char in url)
-
-    # 7. Suspicious keywords
-    suspicious_words = ['login', 'verify', 'update', 'secure', 'account', 'bank', 'free']
-    has_suspicious_word = 1 if any(word in url for word in suspicious_words) else 0
+    # Feature 6: Suspicious words commonly used in phishing
+    suspicious_words = ['login', 'verify', 'update', 'secure', 'account', 'bank']
+    has_suspicious_word = 0
+    for word in suspicious_words:
+        if word in url.lower():
+            has_suspicious_word = 1
+            break
 
     return [
         url_length,
         num_dots,
-        num_hyphens,
-        has_at_symbol,
         has_https,
-        num_digits,
+        has_at_symbol,
+        num_hyphens,
         has_suspicious_word
     ]
