@@ -45,3 +45,8 @@ def analyze_url():
     }
 
     return jsonify(response)
+
+@app.route("/")
+def home():
+    return {"message": "ForenSys Backend Running"}
+
