@@ -1,34 +1,39 @@
-# Train phishing detection model (Structural DNA)
-
 import pandas as pd
-import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import joblib
 
-from features import extract_features
+# 1. Load dataset (already feature-engineered)
+data = pd.read_csv("data/dataset.csv")
 
+# 2. Separate features and label
+# In this dataset, the label column is usually named 'Result'
+X = data.drop(columns=["Result"])
+y = data["Result"]
 
-# 1. Load dataset
-# Dataset must have columns: 'url' and 'label'
-data = pd.read_csv("../data/raw/phishing.csv")
+# Convert labels: -1 (phishing) → 1, 1 (legitimate) → 0
+y = y.map({-1: 1, 1: 0})
 
-# 2. Extract features
-X = data['url'].apply(extract_features).tolist()
-y = data['label']
-
-# 3. Split data
+# 3. Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# 4. Train model
+# 4. Train interpretable model
 model = RandomForestClassifier(
     n_estimators=100,
-    random_state=42
+    random_state=42,
+    n_jobs=-1
 )
+
 model.fit(X_train, y_train)
 
-# 5. Save trained model
-joblib.dump(model, "phish_model.pkl")
+# 5. Evaluate
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy:.4f}")
 
-print("✅ Model trained and saved as phish_model.pkl")
+# 6. Save model
+joblib.dump(model, "phish_model.pkl")
+print("Model saved as phish_model.pkl")
